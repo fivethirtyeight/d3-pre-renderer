@@ -1,6 +1,6 @@
 {
   "name": "@fivethirtyeight/d3-pre-renderer",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Renderer for the d3-pre prerendering pipeline",
   "main": "index.js",
   "scripts": {
