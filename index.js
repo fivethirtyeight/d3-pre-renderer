@@ -1,18 +1,14 @@
 #!/usr/bin/env node
-var jsdom = require('jsdom');//.jsdom;
-var fs = require('fs');
+var jsdom = require('jsdom');
 var path = require('path');
 var serveFolder = require('serve-folder');
 
-
-module.exports = function(options, callback) {
-
-
-  if(!arguments.length < 2 || !options.) {
-      return callback(new Error('Must provide options dictionary with `inputFile` and a callback function'));
+module.exports = function (options, callback) {
+  if (arguments.length < 2 || !options.inputFile) {
+    return callback(new Error('Must provide options dictionary with `inputFile` and a callback function'));
   }
 
-  if(!options.port) {
+  if (!options.port) {
     options.port = 1313;
   }
 
@@ -20,22 +16,19 @@ module.exports = function(options, callback) {
   var rootPath = path.dirname(inputHtmlPath);
   var basename = path.basename(inputHtmlPath);
 
-  var htmlIn = fs.readFileSync(inputHtmlPath, 'utf8');
   var server = serveFolder(rootPath, options.port);
-
-  var inLength = htmlIn.length;
 
   jsdom.env({
     url: 'http://localhost:' + options.port + '/' + basename,
-  	features: {
+    features: {
       FetchExternalResources: ['script'],
       ProcessExternalResources: ['script'],
       SkipExternalResources: false,
       QuerySelector: true
     },
 
-    done: function(errors, window) {
-      if(errors) {
+    done: function (errors, window) {
+      if (errors) {
         return callback(errors);
       }
       var htmlOut = window.document.documentElement.innerHTML;
@@ -43,4 +36,4 @@ module.exports = function(options, callback) {
       callback(null, htmlOut);
     }
   });
-}
+};
