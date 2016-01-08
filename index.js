@@ -5,17 +5,11 @@ var path = require('path');
 var serveFolder = require('serve-folder');
 
 
+module.exports = function(options, callback) {
 
-module.exports = function(options) {
 
-  options = options || {};
-  if(!options.inputFile) {
-    console.warn('must supply an input file');
-    return;
-  }
-
-  if(!options.outputFile) {
-    options.outputFile = options.inputFile;
+  if(!arguments.length < 2 || !options.) {
+      return callback(new Error('Must provide options dictionary with `inputFile` and a callback function'));
   }
 
   if(!options.port) {
@@ -42,18 +36,11 @@ module.exports = function(options) {
 
     done: function(errors, window) {
       if(errors) {
-        console.log(errors);
-        return;
+        return callback(errors);
       }
       var htmlOut = window.document.documentElement.innerHTML;
       server.close();
-      fs.writeFile(options.outputFile, htmlOut, function(err) {
-  			if(err) {
-  				console.log('error saving document', err)
-  			} else {
-  				console.log('The file was saved!')
-  			}
-  		});
+      callback(null, htmlOut);
     }
   });
 }
