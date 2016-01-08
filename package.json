@@ -1,0 +1,15 @@
+{
+  "name": "@fivethirtyeight/d3-pre-renderer",
+  "version": "1.0.0",
+  "description": "Renderer for the d3-pre prerendering pipeline",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Matthew Conlen",
+  "license": "ISC",
+  "dependencies": {
+    "jsdom": "^3.1.2",
+    "serve-folder": "^1.0.0"
+  }
+}
