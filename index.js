@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-var jsdom = require('jsdom');
 var path = require('path');
 var serveFolder = require('serve-folder');
+var Nightmare = require('nightmare');
 
 module.exports = function (options, callback) {
   if (arguments.length < 2 || !options.inputFile) {
@@ -18,22 +18,18 @@ module.exports = function (options, callback) {
 
   var server = serveFolder(rootPath, options.port);
 
-  jsdom.env({
-    url: 'http://localhost:' + options.port + '/' + basename,
-    features: {
-      FetchExternalResources: ['script'],
-      ProcessExternalResources: ['script'],
-      SkipExternalResources: false,
-      QuerySelector: true
-    },
+  var nightmare = Nightmare();
 
-    done: function (errors, window) {
-      if (errors) {
-        return callback(errors);
-      }
-      var htmlOut = window.document.documentElement.innerHTML;
-      server.close();
+  nightmare
+    .goto('http://localhost:' + options.port + '/' + basename)
+    .evaluate(function () {
+      return document.documentElement.outerHTML;
+    })
+    .then(function (htmlOut) {
       callback(null, htmlOut);
-    }
-  });
+      return nightmare.end();
+    })
+    .then(function (results) {
+      server.close();
+    });
 };
