@@ -28,6 +28,10 @@ module.exports = function (options, callback) {
   var inputHtmlPath = path.resolve(options.inputFile);
   var originalHTML = fs.readFileSync(inputHtmlPath).toString();
 
+  if (options.preprocessHTML) {
+    fs.writeFileSync(inputHtmlPath, options.preprocessHTML(originalHTML));
+  }
+
   var rootPath;
   var basename;
   if (options.basePath) {
@@ -63,6 +67,9 @@ module.exports = function (options, callback) {
         return document.documentElement.outerHTML;
       })
     ).then(function (htmlOut) {
+      if (options.postprocessHTML) {
+        htmlOut = options.postprocessHTML(htmlOut);
+      }
       output = cleanHTML(originalHTML, htmlOut);
       server.close();
       return nightmare.end();
