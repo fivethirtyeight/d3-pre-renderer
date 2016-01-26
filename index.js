@@ -5,6 +5,7 @@ var Nightmare = require('nightmare');
 var getPort = require('get-port');
 var cheerio = require('cheerio');
 var fs = require('fs');
+var Promise = require('q').Promise;
 
 var cleanHTML = function (originalHTML, outputHTML) {
   var $original = cheerio.load(originalHTML);
@@ -47,11 +48,12 @@ module.exports = function (options, callback) {
     runPrerender();
   }
 
+  var output;
   var runPrerender = function () {
     var server = serveFolder(rootPath, options.port);
     var nightmare = Nightmare();
 
-    nightmare
+    Promise.resolve(nightmare
       // .on('console', function (type, errorMessage, errorStack) {
       //   console.log(errorMessage);
       // })
@@ -60,12 +62,14 @@ module.exports = function (options, callback) {
       .evaluate(function () {
         return document.documentElement.outerHTML;
       })
-      .then(function (htmlOut) {
-        htmlOut = cleanHTML(originalHTML, htmlOut);
-
-        callback(null, htmlOut);
-        server.close();
-        return nightmare.end();
-      });
+    ).then(function (htmlOut) {
+      output = cleanHTML(originalHTML, htmlOut);
+      server.close();
+      return nightmare.end();
+    }).then(function () {
+      callback(null, output);
+    }, function (err) {
+      callback(err);
+    });
   };
 };
