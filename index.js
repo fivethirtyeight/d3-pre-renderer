@@ -58,6 +58,7 @@ module.exports = function (options, callback) {
     var nightmare = Nightmare();
 
     Promise.resolve(nightmare
+      .viewport(1920, 1080)
       // .on('console', function (type, errorMessage, errorStack) {
       //   console.log(errorMessage);
       // })
