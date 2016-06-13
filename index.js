@@ -11,6 +11,19 @@ var cleanHTML = function (originalHTML, outputHTML) {
   var $original = cheerio.load(originalHTML);
   var $output = cheerio.load(outputHTML);
 
+  var originalOptIns = $original('[data-prerender-only]');
+
+  if (originalOptIns.length) {
+    var outputOptIns = $output('[data-prerender-only]');
+    // If we see at least one 'opt-in' flag, only render the opt in
+    originalOptIns.each(function (i) {
+      $original(this).html(outputOptIns.eq(i).html());
+      return;
+    });
+
+    return $original.html();
+  }
+
   var originalIgnores = $original('[data-prerender-ignore]');
   $output('[data-prerender-ignore]').each(function (i) {
     $output(this).html(originalIgnores.eq(i).html());
