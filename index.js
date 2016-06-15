@@ -5,7 +5,35 @@ var Nightmare = require('nightmare');
 var getPort = require('get-port');
 var cheerio = require('cheerio');
 var fs = require('fs');
-var Promise = require('q').Promise;
+var Q = require('q');
+var Promise = Q.Promise;
+var SVGO = require('svgo');
+var svgo = new SVGO({
+  full: true,
+  plugins: [{convertPathData: true}]
+})
+
+var minifySVG = function ($input, callback) {
+  var $svgs = $input('svg[data-prerender-minify]');
+  var count = $svgs.length;
+  var completed = 0;
+
+  if (count === 0) {
+    callback(null, $input);
+  }
+
+  $svgs.each(function(i) {
+    var svg = $input(this);
+    svgo.optimize($input.html(svg), function(result) {
+      completed++;
+      $input(svg).replaceWith(result.data);
+      if (completed === count) {
+        callback(null, $input);
+      }
+    });
+  });
+
+};
 
 var cleanHTML = function (originalHTML, outputHTML) {
   var $original = cheerio.load(originalHTML);
@@ -21,7 +49,7 @@ var cleanHTML = function (originalHTML, outputHTML) {
       return;
     });
 
-    return $original.html();
+    return $original;
   }
 
   var originalIgnores = $original('[data-prerender-ignore]');
@@ -30,7 +58,7 @@ var cleanHTML = function (originalHTML, outputHTML) {
     return;
   });
 
-  return $output.html();
+  return $output;
 };
 
 module.exports = function (options, callback) {
@@ -84,7 +112,11 @@ module.exports = function (options, callback) {
       if (options.postprocessHTML) {
         htmlOut = options.postprocessHTML(htmlOut);
       }
-      output = cleanHTML(originalHTML, htmlOut);
+      return cleanHTML(originalHTML, htmlOut);
+    }).then(function ($html) {
+      return Q.nfcall(minifySVG, $html);
+    }).then(function ($output) {
+      output = $output.html();
       server.close();
       return nightmare.end();
     }).then(function () {
