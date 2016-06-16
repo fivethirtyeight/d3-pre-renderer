@@ -88,9 +88,9 @@ module.exports = function (options, callback) {
 
     Promise.resolve(nightmare
       .viewport(1920, 1080)
-      .on('console', function (type, errorMessage, errorStack) {
-        console.log(errorMessage);
-      })
+      // .on('console', function (type, errorMessage, errorStack) {
+      //   console.log(errorMessage);
+      // })
       .goto('http://localhost:' + port + '/' + basename)
       .wait(5000)
       .evaluate(function () {
