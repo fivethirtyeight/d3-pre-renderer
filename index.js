@@ -68,11 +68,9 @@ module.exports = function (options, callback) {
 
   var inputHtmlPath = path.resolve(options.inputFile);
   var originalHTML = fs.readFileSync(inputHtmlPath).toString();
-
   if (options.preprocessHTML) {
     fs.writeFileSync(inputHtmlPath, options.preprocessHTML(originalHTML));
   }
-
   var rootPath;
   var basename;
   if (options.basePath) {
@@ -83,27 +81,17 @@ module.exports = function (options, callback) {
     basename = path.basename(inputHtmlPath);
   }
 
-  if (!options.port) {
-    getPort()
-      .then(function (port) {
-        options.port = port;
-        runPrerender();
-      });
-  } else {
-    runPrerender();
-  }
-
   var output;
-  var runPrerender = function () {
-    var server = serveFolder(rootPath, options.port);
+  var runPrerender = function (port) {
+    var server = serveFolder(rootPath, port);
     var nightmare = Nightmare();
 
     Promise.resolve(nightmare
       .viewport(1920, 1080)
-      // .on('console', function (type, errorMessage, errorStack) {
-      //   console.log(errorMessage);
-      // })
-      .goto('http://localhost:' + options.port + '/' + basename)
+      .on('console', function (type, errorMessage, errorStack) {
+        console.log(errorMessage);
+      })
+      .goto('http://localhost:' + port + '/' + basename)
       .wait(5000)
       .evaluate(function () {
         return document.documentElement.outerHTML;
@@ -121,8 +109,19 @@ module.exports = function (options, callback) {
       return nightmare.end();
     }).then(function () {
       callback(null, output);
-    }, function (err) {
+    }).catch(function (err) {
       callback(err);
     });
   };
+
+
+  if (!options.port) {
+    getPort()
+      .then(function (port) {
+        runPrerender(port);
+      });
+  } else {
+    runPrerender(options.port);
+  }
+
 };
